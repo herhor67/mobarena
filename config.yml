@@ -1,3 +1,61 @@
 messages:
   noperm: '&cNie masz uprawnień aby to zrobić!'
 
+options:
+#========={ ADMIN MESSAGES }==========#
+created: &aUtworzono arenę %arg 2%!
+alreadyexist: &cArena %arg 2% już istnieje!
+namenotgiven: &cPodaj nazwę areny!
+deleted: &aUsunięto arenę %arg 2%!
+doesntexist: &cArena %arg 2% nie istnieje!
+badworld: &cArena nie została stworzona w tym świecie! Wejdź na mapę &l%{_swiat}%&c!
+point1set: &aPunkt 1 areny %arg 2% został ustawiony na %location of player%!
+point2set: &aPunkt 2 areny %arg 2% został ustawiony na %location of player%!
+setp1first: &cUstaw najpierw punkt 1! &l/maadmin (setpoint1|ustawpunkt1) %arg 2%
+regioncreated: &aStworzono region areny!
+playersspawnset: &aUstawiono spawn graczy areny %arg 2% na %location of player%!
+mobspawnset: &aUstawiono spawn mobów ##%{_spawn}% na %location of player%!
+howtodelete: &aWpisz &l/ma (deletemobspawn|usunspawnmobow) %arg 2% %{_spawn}% &aaby usunąć ten spawn!
+deletedmobspawn: &aUsunięto spawn mobów ##%{_spawn}% na arenie %arg 2%!
+msdntexist: &cSpawn mobów ##%{_spawn}% na arenie %arg 2% nie istnieje! Podaj wartość między 0 a %{_ilosc}%!
+idnotgiven: &cPodaj numer spawnu mobów!
+lobbyset: &aUstawiono lobby areny %arg 2% na %location of player%!
+disabled: &aWyłączono arenę %arg 2%!
+enabled: &aWłączono arenę %arg 2%!
+confnotended: &cArena nie została skonfigurowana do końca!
+youstopped: &aZatrzymałeś grę na arenie %arg 2%!
+notworking: &cNa arenie %arg 2% nie trwa rozgrywka!
+stopfirst: &cNajpierw zatrzymaj arenę! &l/madmin (stop|zatrzymaj) %arg 2%
+kitroomset: &aUstawiono miejsce wyboru klas na %location of player%!
+changemode: &cZmień tryb areny! &l/madmin (mode|tryb) %arg 2%
+#=========={ PLAYER MESSAGES }==========#
+arenastopped: &cGracz %sender% zatrzymał arenę!
+playerjoined: &aGracz %player% dołączył do areny!
+joined: &aDołączyłeś do areny %arg 2%!
+left: &aWyszedłeś z areny!
+selectclass: &aWybierz klasę i kliknij na &l{@blok}&a!
+notplayable: &cNie możesz obecnie grać na tej arenie!
+alreadyplaying: &cJuż grasz! Nie możesz zmienić areny!
+tptolobby: &aTeleportowano do lobby areny %arg 2%!
+receivedkit: &aOtrzymałeś zestaw &l%line 3%&a!
+playerisready: &aGracz &l%player% &ajest gotowy do gry!
+teleported: &aWszyscy walczący zostali teleportowani na arenę!
+victimdied: &aGracz &l%victim% &azginął!
+lastdied: &aBył to ostatni gracz na arenie!
+playerleft: &aGracz &l%player% &aopuścił rozgrywkę!
+lastleft: &aBył to ostatni gracz na arenie!
+cancel: &cJesteś na arenie! Aby to zrobić, wyjdź z niej, wpisując &l/ma leave
+chooseclass: &aWybierz swoją klasę!
+unavailable: &cArena nie możesz oglądać rozgrywki na tej arenie!
+notplaying: &cNie grasz na żadnej arenie!
+youcannotdig: &cNie możesz kopać w czasie rozgrywki!
+#config
+roundtime: 20
+canjointo: "working" # ("enabled"|"working"|"enabled" or "working")
+blockdigging: true
+maxrounds: 10
+
+round:
+  1:
+    - zombie
+    - skeleton
