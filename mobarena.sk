@@ -1,0 +1,526 @@
+options:
+#========={ ADMIN MESSAGES }==========#
+	created: &aUtworzono arenę %arg 2%!
+	alreadyexist: &cArena %arg 2% już istnieje!
+	namenotgiven: &cPodaj nazwę areny!
+	deleted: &aUsunięto arenę %arg 2%!
+	doesntexist: &cArena %arg 2% nie istnieje!
+	badworld: &cArena nie została stworzona w tym świecie! Wejdź na mapę &l%{_swiat}%&c!
+	point1set: &aPunkt 1 areny %arg 2% został ustawiony na %location of player%!
+	point2set: &aPunkt 2 areny %arg 2% został ustawiony na %location of player%!
+	setp1first: &cUstaw najpierw punkt 1! &l/maadmin (setpoint1|ustawpunkt1) %arg 2%
+	regioncreated: &aStworzono region areny!
+	playersspawnset: &aUstawiono spawn graczy areny %arg 2% na %location of player%!
+	mobspawnset: &aUstawiono spawn mobów ##%{_spawn}% na %location of player%!
+	howtodelete: &aWpisz &l/ma (deletemobspawn|usunspawnmobow) %arg 2% %{_spawn}% &aaby usunąć ten spawn!
+	deletedmobspawn: &aUsunięto spawn mobów ##%{_spawn}% na arenie %arg 2%!
+	msdntexist: &cSpawn mobów ##%{_spawn}% na arenie %arg 2% nie istnieje! Podaj wartość między 0 a %{_ilosc}%!
+	idnotgiven: &cPodaj numer spawnu mobów!
+	lobbyset: &aUstawiono lobby areny %arg 2% na %location of player%!
+	disabled: &aWyłączono arenę %arg 2%!
+	enabled: &aWłączono arenę %arg 2%!
+	confnotended: &cArena nie została skonfigurowana do końca!
+	youstopped: &aZatrzymałeś grę na arenie %arg 2%!
+	notworking: &cNa arenie %arg 2% nie trwa rozgrywka!
+	stopfirst: &cNajpierw zatrzymaj arenę! &l/madmin (stop|zatrzymaj) %arg 2%
+	kitroomset: &aUstawiono miejsce wyboru klas na %location of player%!
+	changemode: &cZmień tryb areny! &l/madmin (mode|tryb) %arg 2%
+#=========={ PLAYER MESSAGES }==========#
+	arenastopped: &cGracz %sender% zatrzymał arenę!
+	playerjoined: &aGracz %player% dołączył do areny!
+	joined: &aDołączyłeś do areny %arg 2%!
+	left: &aWyszedłeś z areny!
+	selectclass: &aWybierz klasę i kliknij na &l{@blok}&a!
+	notplayable: &cNie możesz obecnie grać na tej arenie!
+	alreadyplaying: &cJuż grasz! Nie możesz zmienić areny!
+	tptolobby: &aTeleportowano do lobby areny %arg 2%!
+	receivedkit: &aOtrzymałeś zestaw &l%line 3%&a!
+	playerisready: &aGracz &l%player% &ajest gotowy do gry!
+	teleported: &aWszyscy walczący zostali teleportowani na arenę!
+	victimdied: &aGracz &l%victim% &azginął!
+	lastdied: &aBył to ostatni gracz na arenie!
+	playerleft: &aGracz &l%player% &aopuścił rozgrywkę!
+	lastleft: &aBył to ostatni gracz na arenie!
+	cancel: &cJesteś na arenie! Aby to zrobić, wyjdź z niej, wpisując &l/ma leave
+	chooseclass: &aWybierz swoją klasę!
+	unavailable: &cArena nie możesz oglądać rozgrywki na tej arenie!
+	notplaying: &cNie grasz na żadnej arenie!
+	youcannotdig: &cNie możesz kopać w czasie rozgrywki!
+#config
+	roundtime: 20
+	canjointo: "working" # ("enabled"|"working"|"enabled" or "working")
+	blockdigging: true
+	maxrounds: 10
+	
+
+command /mobarenaadmin [<text="help">] [<text>] [<text>]:
+	aliases: maadmin, madmin
+	permission: "mobarena.admin"
+	permission message: "&cNie masz uprawnień do zrobienia tego!"
+	trigger:
+		arg 1 is "create" or "utworz":
+			arg 2 is set:
+				{mobarena::list::%arg 2%} is not set:
+					send "{@created}"
+					set {mobarena::list::%arg 2%} to true
+					set {mobarena::mode::%arg 2%} to "disabled"
+					set {mobarena::world::%arg 2%} to player's world
+				else:
+					send "{@alreadyexist}"
+			else:
+				send "{@namenotgiven}"
+		arg 1 is "delete" or "usun":
+			arg 2 is set:
+				{mobarena::list::%arg 2%} is true:
+					{mobarena::mode::%arg 2%} is "disabled":
+						send "{@deleted}"
+						clear {mobarena::list::%arg 2%}
+						clear {mobarena::spawn::%arg 2%}
+						clear {mobarena::spawns::%arg 2%::*}
+						clear {mobarena::lobby1::%arg 2%}
+						clear {mobarena::lobby2::%arg 2%}
+						delete wg region "mobarena%arg 2%" in world {mobarena::world::%arg 2%} # piratesk
+						clear {mobarena::point1::%arg 2%}
+						clear {mobarena::point2::%arg 2%}
+						clear {mobarena::mode::%arg 2%}
+					{mobarena::mode::%arg 2%} is "working":
+						send "{@stopfirst}"
+						send "{@changemode}"
+					{mobarena::mode::%arg 2%} is "enabled":
+						send "{@changemode}"
+				else:
+					send "{@doesntexist}"
+			else:
+				send "{@namenotgiven}"
+		arg 1 is "lista" or "list":
+			set {_number} to 1
+			loop {mobarena::list::*}:
+				{mobarena::mode::%loop-index%} is "working":
+					send "&6%{_number}%. &e%loop-index%"
+			loop {mobarena::list::*}:
+				{mobarena::mode::%loop-index%} is "enabled":
+					send "&2%{_number}%. &a%loop-index%"
+			loop {mobarena::list::*}:
+				{mobarena::mode::%loop-index%} is "disabled":
+					send "&4%{_number}%. &c%loop-index%"
+		arg 1 is "setpoint1" or "ustawpunkt1":
+			arg 2 is set:
+				{mobarena::list::%arg 2%} is true:
+					player is in world {mobarena::world::%arg 2%}:
+						set {mobarena::point1::%arg 2%} to location of player
+						send "{@point1set}"
+						{mobarena::point2::%arg 2%} is set:
+							send "{@regioncreated}"
+							set {_w} to player's world
+							create wg region "mobarena%arg 2%" between {mobarena::point1::%arg 2%} and {mobarena::point2::%arg 2%} in world {_w} # piratesk
+					else:
+						set {_world} to {mobarena::world::%arg 2%}
+						send "{@badworld}"
+				else:
+					send "{@doesntexist}"
+			else:
+				send "{@namenotgiven}"
+		arg 1 is "setpoint2" or "ustawpunkt2":
+			arg 2 is set:
+				{mobarena::list::%arg 2%} is true:
+					{mobarena::point1::%arg 2%} is set:
+						player is in world {mobarena::world::%arg 2%}:
+							set {mobarena::point2::%arg 2%} to location of player
+							set {_w} to player's world
+							create wg region "mobarena%arg 2%" between {mobarena::point1::%arg 2%} and {mobarena::point2::%arg 2%} in world {_w} # piratesk
+							send "{@point2set}"
+							send "{@regioncreated}"
+						else:
+							set {_world} to {mobarena::world::%arg 2%}
+							send "{@badworld}"
+					else:
+						send "{@setp1first}"
+				else:
+					send "{@doesntexist}"
+			else:
+				send "{@namenotgiven}"
+		arg 1 is "setspawn" or "ustawspawn":
+			arg 2 is set:
+				{mobarena::list::%arg 2%} is true:
+					player is in world {mobarena::world::%arg 2%}:
+						set {mobarena::spawn::%arg 2%} to location of player
+						send "{@playersspawnset}"
+					else:
+						set {_world} to {mobarena::world::%arg 2%}
+						send "{@badworld}"
+				else:
+					send "{@doesntexist}"
+			else:
+				send "{@namenotgiven}"
+		arg 1 is "addmobspawn" or "dodajspawnmobow":
+			arg 2 is set:
+				{mobarena::list::%arg 2%} is true:
+					player is in world {mobarena::world::%arg 2%}:
+						add location of player to {mobarena::spawns::%arg 2%::*}
+						set {_spawn} to size of {mobarena::spawns::%arg 2%::*}
+						send "{@mobspawnset}"
+						send "{@howtodelete}"
+					else:
+						set {_world} to {mobarena::world::%arg 2%}
+						send "{@badworld}"
+				else:
+					send "{@doesntexist}"
+			else:
+				send "{@namenotgiven}"
+		arg 1 is "deletemobspawn" or "usunspawnmobow":
+			arg 2 is set:
+				arg 3 is set:
+					{mobarena::list::%arg 2%} is true:
+						set {_spawn} to arg 3 parsed as number
+						{_spawn} is less than or equal to size of {mobarena::spawns::%arg 2%::*}:
+							{_spawn} is greater than 0:
+								clear {mobarena::spawns::%arg 2%::%arg 3%}
+								send "{@deletedmobspawn}"
+							else:
+								set {_ilosc} to size of {mobarena::spawns::%arg 2%::*}
+								send "{@msdntexist}"
+						else:
+							set {_ilosc} to size of {mobarena::spawns::%arg 2%::*}
+							send "{@msdntexist}"
+					else:
+						send "{@doesntexist}"
+				else:
+					send "{@idnotgiven}"
+			else:
+				send "{@namenotgiven}"
+		arg 1 is "setlobby1" or "ustawobby1":
+			arg 2 is set:
+				{mobarena::list::%arg 2%} is true:
+					player is in world {mobarena::world::%arg 2%}:
+						set {mobarena::lobby1::%arg 2%} to location of player
+						send "{@lobbyset}"
+					else:
+						set {_world} to {mobarena::world::%arg 2%}
+						send "{@badworld}"
+				else:
+					send "{@doesntexist}"
+			else:
+				send "{@namenotgiven}"
+		arg 1 is "setlobby2" or "ustawobby2":
+			arg 2 is set:
+				{mobarena::list::%arg 2%} is true:
+					player is in world {mobarena::world::%arg 2%}:
+						set {mobarena::lobby2::%arg 2%} to location of player
+						send "{@lobbyset}"
+					else:
+						set {_world} to {mobarena::world::%arg 2%}
+						send "{@badworld}"
+				else:
+					send "{@doesntexist}"
+			else:
+				send "{@namenotgiven}"
+		arg 1 is "kitroom" or "pokojkitow":
+			arg 2 is set:
+				{mobarena::list::%arg 2%} is true:
+					player is in world {mobarena::world::%arg 2%}:
+						set {mobarena::kitroom::%arg 2%} to location of player
+						send "{@kitroomset}"
+					else:
+						set {_world} to {mobarena::world::%arg 2%}
+						send "{@badworld}"
+				else:
+					send "{@doesntexist}"
+			else:
+				send "{@namenotgiven}"
+		arg 1 is "mode" or "tryb":
+			arg 2 is set:
+				{mobarena::list::%arg 2%} is true:
+					{mobarena::mode::%arg 2%} is "enabled":
+						set {mobarena::mode::%arg 2%} to "disabled"
+						send "{@disabled}"
+						stop
+					{mobarena::mode::%arg 2%} is "working":
+						send "{@stopfirst}"
+						stop
+					{mobarena::mode::%arg 2%} is "disabled":
+						{mobarena::point1::%arg 2%} is set:
+							{mobarena::point2::%arg 2%} is set:
+								{mobarena::spawn::%arg 2%} is set:
+									size of {mobarena::spawns::%arg 2%::*} is greater than 0:
+										{mobarena::lobby1::%arg 2%} is set:
+											send "{@enabled}"
+											set {mobarena::mode::%arg 2%} to "enabled"
+										else:
+											send "{@confnotended}"
+									else:
+										send "{@confnotended}"
+								else:
+									send "{@confnotended}"
+							else:
+								send "{@confnotended}"
+						else:
+							send "{@confnotended}"
+					else:
+						send "{@confnotended}"
+				else:
+					send "{@doesntexist}"
+			else:
+				send "{@namenotgiven}"
+		arg 1 is "stop" or "zatrzymaj":
+			arg 2 is set:
+				{mobarena::list::%arg 2%} is set:
+					{mobarena::mode::%arg 2%} is "working":
+						send "{@youstopped}"
+						loop all players:
+							{maplayers::arena::%loop-player%} is arg 2:
+								send "{@arenastopped}" to loop-player
+								execute loop-player command "/ma leave"
+						set {mobarena::mode::%arg 2%} to "enabled"
+					else:
+						send "{@notworking}"
+				else:
+					send "{@doesntexist}"
+			else:
+				send "{@namenotgiven}"
+		arg 1 is "help" or "pomoc":
+			send "&e##===================={ &2Mob&4Arena &e}====================##"
+			send "&c/madmin (create|utworz) <nazwa> &6- tworzy arenę o podanej nazwie"
+			send "&c/madmin (delete|usun) <nazwa> &6- usuwa arenę"
+			send "&c/madmin (list|lista) &6- lista aren z podziałem na status"
+			send "&c/madmin (setpoint1|ustawpunkt1) <nazwa> &6- ustawia 1 róg areny"
+			send "&c/madmin (setpoint2|ustawpunkt2) <nazwa> &6- ustawia 2 (przeciwległy) róg areny"
+			send "&c/madmin (setspawn|ustawspawn) <nazwa> &6- ustawia miejsce teleportacji graczy"
+			send "&c/madmin (addmobspawn|dodajspawnmobow) <nazwa> &6- dodaje spawn mobów"
+			send "&c/madmin (deletemobspawn|usunspawnmobow) <nazwa> <id> &6- usuwa spawn o podanym id"
+			send "&c/madmin (setlobby|ustawlobby)(1|2) <nazwa> &6- ustawa punkt obserwacyjny 1 lub 2"
+			send "&c/madmin (kitroom|pokojkitow) <nazwa> &6- ustawia miejsce wyboru klas"
+			send "&c/madmin (mode|tryb) <nazwa> &6- włącza lub wyłącza arenę z użytku"
+			send "&c/madmin (stop|zatrzymaj) <nazwa> &6- zatrzymuje rozgrywkę na podanej arenie"
+	
+
+command /mobarena [<text="help">] [<text>]:
+	aliases: ma
+	trigger:
+		arg 1 is "list" or "lista":
+			set {_number} to 1
+			loop {mobarena::list::*}:
+				{mobarena::mode::%loop-index%} is "enabled":
+					send "&2&l%{_number}%. &a%loop-index%"
+			loop {mobarena::list::*}:
+				{mobarena::mode::%loop-index%} is "working":
+					send "&6&l%{_number}%. &e%loop-index%"
+		arg 1 is "join" or "dolacz":
+			arg 2 is set:
+				{mobarena::list::%arg 2%} is true:
+					{mobarena::mode::%arg 2%} is "enabled":
+						{maplayers::arena::%player%} is not set:
+#------ EQ backups ------#
+							set {maplayers::inventory::%player%} to true
+							set {maplayers::inventory::%player%::eq} to serialized contents of player's current inventory
+							set {maplayers::inventory::%player%::helmet} to player's helmet
+							set {maplayers::inventory::%player%::chestplate} to player's chestplate
+							set {maplayers::inventory::%player%::leggins} to player's leggings
+							set {maplayers::inventory::%player%::boots} to player's boots
+							clear player's inventory
+							set {maplayers::location::%player%} to location of player
+							set {maplayers::mode::%player%} to "waiting"
+#------ Next ------#
+							teleport player to {mobarena::kitroom::%arg 2%}
+							loop all players:
+								{maplayers::arena::%loop-player%} is arg 2:
+									send "{@playerjoined}" to loop-player
+							set {maplayers::arena::%player%} to arg 2
+							send "{@joined}"
+							send "{@chooseclass}"
+						else:
+							send "{@alreadyplaying}"
+					else:
+						send "{@notplayable}"
+				else:
+					send "{@doesntexist}"
+			else:
+				send "{@namenotgiven}"
+		arg 1 is "leave" or "wyjdz":
+			{maplayers::arena::%player%} is set:
+#------ Backup ------#
+				{maplayers::inventory::%player%} is true:
+					set player's inventory to {maplayers::inventory::%player%::eq}
+					set the helmet of player to {maplayers::inventory::%player%::helmet}
+					set the chestplate of player to {maplayers::inventory::%player%::chestplate}
+					set the leggings of player to {maplayers::inventory::%player%::leggins}
+					set the boots of player to {maplayers::inventory::%player%::boots}
+#------ Then ------#
+				send "{@left}"
+				set {_grajacy} to 0
+				clear {maplayers::inventory::%player%::*}
+				clear {maplayers::inventory::%player%}
+				clear {maplayers::mode::%player%}
+				loop all players:
+					{maplayers::arena::%loop-player%} is {maplayers::arena::%player%}:
+						send "{@playerleft}" to loop-player
+						{maplayers::mode::%loop-player%} is "playing":
+							add 1 to {_grajacy}
+				{_grajacy} is 0:
+					loop all players:
+						{maplayers::arena::%loop-player%} is {maplayers::arena::%player%}:
+							send "{@lastleft}" to loop-player
+							execute loop-player command "/ma leave"
+							set {mobarena::mode::%arg 2%} to "enabled"
+				teleport player to {maplayers::location::%player%}
+				clear {maplayers::location::%player%}
+				clear {maplayers::arena::%player%}
+			else:
+				send "{@notplaying}"
+		arg 1 is "spectate" or "ogladaj":
+			arg 2 is set:
+				{mobarena::list::%arg 2%} is true:
+					{mobarena::mode::%arg 2%} is {@canjointo}:
+						{maplayers::arena::%player%} is not set:
+							set {maplayers::arena::%player%} to arg 2
+							set {maplayers::mode::%player%} to "spectator"
+							set {maplayers::location::%player%} to location of player
+							{mobarena::lobby2::%arg 2%} is set:
+								teleport player to {mobarena::lobby1::%arg 2%} or {mobarena::lobby2::%arg 2%}
+							else:
+								teleport player to {mobarena::lobby1::%arg 2%}
+							send "{@tptolobby}"
+						else:
+							send "{@alreadyplaying}"
+					else:
+						send "{@unavailable}"
+				else:
+					send "{@doesntexist}"
+			else:
+				send "{@namenotgiven}"
+		arg 1 is "help" or "pomoc":
+			send "&6##=========={ &2Mob&4Arena &6}==========##"
+			send "&c/ma join <nazwa> &6- dołączasz do areny"
+			send "&c/ma leave &6- opuszczasz arenę"
+			send "&c/ma spectate <nazwa> &6- obserwujesz grę"
+			send "&c/ma list &6- lista aren z możliwością gry lub oglądania"
+	
+
+
+
+#=========={ TABLICZKI }==========#
+on rightclick on sign:
+	line 1 is "&2Mob&4Arena":
+		line 2 is "join" or "dolacz":
+			line 3 is set:
+				execute player command "/ma join %line 3%"
+		line 2 is "leave" or "opusc":
+			execute player command "/ma leave"
+		line 2 is "spectate" or "ogladaj":
+			line 3 is set:
+				execute player command "/ma spectate %line 3%"
+#------ Kity ------#
+		line 2 is "kit":
+			line 3 is set:
+				clear player's inventory
+				set {_items::*} to value list "kits.%line 3%" get of "plugins/MobArena/config.yml" # ws or skq?
+				loop {_items::*}:
+					give loop-value to player
+					wait 3 ticks
+				send "{@receivedkit}"
+#------ Gotowi ------#
+		line 2 is "ready" or "gotowy":
+			set {_niegotowi} to 0
+			set {maplayers::mode::%player%} to "ready"
+			loop all players:
+				{maplayers::arena::%loop-player%} is {maplayers::arena::%player%}:
+					send "{@playerisready}" to loop-player
+					{maplayers::mode::%loop-player%} is "waiting":
+						add 1 to {_niegotowi}
+			{_niegotowi} is 0:
+				loop all players:
+					if {maplayers::arena::%loop-player%} is {maplayers::arena::%player%}:
+						if {maplayers::mode::%loop-player%} is "waiting" or "ready":
+							teleport loop-player to {mobarena::spawn::%{maplayers::arena::%loop-player%}%}
+							send "{@teleported}" to loop-player
+							set {maplayers::mode::%loop-player%} to "playing"
+							set {_arena} to {maplayers::arena::%player%}
+				set {mobarena::mode::%{_arena}%} to "working"
+				set {mobarena::time::%{_arena}%} to 20
+				set {mobarena::round::%{_arena}%} to 1
+
+#------ Rundy ------#
+
+every second:
+	loop {mobarena::time::*}:
+		{mobarena::mode::%loop-index%} is "working":
+			remove 1 from {mobarena::time::%loop-index%}
+			{mobarena::time::%loop-index%} is 0:
+				{mobarena::round::%loop-index%} is less than {@maxrounds}
+				set {mobarena::time::%loop-index%} to {@roundtime}
+				add 1 to {mobarena::round::%loop-index%}
+				function "mobarenamobs" {loop-index and {mobarena::round::%loop-index%}}; # ws
+
+
+#=========={ FALE }==========#
+method "mobarenamobs" {arena and round}: # ws
+	set {_arena} to arg{1};
+	set {_round} to arg{2};
+	set {_mobs::*} to value list "round.%{_round}%"
+	loop {_mobs::*}:
+		spawn loop-value at random element of {mobarena::mobspawn::%{_arena}%::*}
+
+#=========={ TELEPORTOWANIE PO ŚMIERCI }==========#
+on death:
+	{maplayers::arena::%victim%} is set:
+		{maplayers::mode::%victim%} is "playing":
+			set {_grajacy} to 0
+			force victim to respawn # randomsk
+			{mobarena::lobby2::%{maplayers::arena::%victim%}%} is set:
+				teleport victim to {mobarena::lobby1::%{maplayers::arena::%victim%}%} or {mobarena::lobby2::%{maplayers::arena::%victim%}%}
+			else:
+				teleport victim to {mobarena::lobby1::%{maplayers::arena::%victim%}%}
+				set {maplayers::mode::%victim%} to "spectator"
+				loop all players:
+					{maplayers::arena::%loop-player%} is {maplayers::arena::%victim%}:
+						send "{@victimdied}" to loop-player
+						{maplayers::mode::%loop-player%} is "playing":
+							add 1 to {_grajacy}
+				{_grajacy} is 0:
+					clear {mobarena::round::%{maplayers::arena::%victim%}%}
+					clear {mobarena::time::%{maplayers::arena::%victim%}%}
+					set {mobarena::mode::%{maplayers::arena::%victim%}%} to "enabled"
+					loop all players:
+						{maplayers::arena::%loop-player%} is {maplayers::arena::%victim%}:
+							send "{@lastleft}" to loop-player
+							execute loop-player command "/ma leave"
+
+on break:
+	{maplayers::arena::%player%} is set:
+		{@blockdigging} is true:
+			cancel event
+			send "{@youcannotdig}"
+on quit:
+	{maplayers::arena::%player%} is set:
+		execute player command "/ma leave"
+
+on join:
+	{maplayers::arena::%player%} is set:
+		execute player command "/ma leave"
+
+on command:
+	{maplayers::arena::%player%} is set:
+		command is "ma" or "mobarena":
+			stop
+		cancel event
+		send "{@cancel}"
+
+
+
+
+#arena mode:   working, enabled, disabled
+#players mode: waiting, ready, playing, spectator
+
+#        set {_count} to 0    #Setting count back to 0 so we can re-use it for the next counter
+#        loop 36 times:
+#            set slot {_count} of player's inventory to {maplayers::inventory::%player%::%{_count}%}
+#            add 1 to {_count}
+ #       set the helmet of player to {maplayers::inventory::%player%.helmet}
+  #      set the chestplate of player to {maplayers::inventory::%player%.chestplate}
+   #     set the leggings of player to {maplayers::inventory::%player%.leggins}
+    #    set the boots of player to {maplayers::inventory::%player%.boots}
+
+
+
+       #         loop blocks within location {@1start} to location {@1end}:
+       #                 set loop-block to stone
+       #                 broadcast "Debug:looped"
