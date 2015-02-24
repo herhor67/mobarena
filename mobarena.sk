@@ -474,9 +474,11 @@ method "mobarenamobs" {arena and round}: # ws
 		spawn loop-value at random element of {mobarena::spawns::%{_arena}%::*}
 
 #=========={ TELEPORTOWANIE PO ŚMIERCI }==========#
-on death:
+on damage:
 	{maplayers::arena::%victim%} is set:
 		{maplayers::mode::%victim%} is "playing":
+			damage is greater than or equal to victim's health
+			cancel event
 			set {_arena} to {maplayers::arena::%victim%}
 			#broadcast "%{_arena}%"
 			set {_grajacy} to false
