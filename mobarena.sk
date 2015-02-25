@@ -57,6 +57,7 @@ options:
 
 on script load:
 	if file "plugins/MobArena/config.yml" isn't exist:
+		send "[MobArena] Config not found! Downloading..."
 		download "" to "plugins/MobArena/config.yml"
 	set {_messages::*} to configuration section "messages" get of "plugins/MobArena/config.yml"
 	loop {_messages::*}:
