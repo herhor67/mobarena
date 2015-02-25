@@ -54,7 +54,11 @@ options:
 	cancelbreak: true
 	cancelplace: false
 	maxrounds: 10
-	
+
+on script load:
+	set {_messages::*} to configuration section "messages" get of "plugins/MobArena/config.yml"
+	loop {_messages::*}:
+		set {mobarena::config::messages::%loop-value%} to single value "messages.%loop-value%" get of "plugins/MobArena/config.yml"
 
 command /mobarenaadmin [<text="help">] [<text>] [<text>]:
 	aliases: maadmin, madmin
