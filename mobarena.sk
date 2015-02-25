@@ -46,11 +46,13 @@ options:
 	unavailable: &cArena nie możesz oglądać rozgrywki na tej arenie!
 	notplaying: &cNie grasz na żadnej arenie!
 	youcannotdig: &cNie możesz kopać w czasie rozgrywki!
+	youcannotplace: &cNie możesz stawiać bloków w czasie rozgrywki!
 	newround: &aNowa runda!
 #config
 	roundtime: 20
-	canjointo: "working" # ("enabled"|"working"|"enabled" or "working")
-	blockdigging: true
+	canjointo: "working" # ("enabled"|"working"|"enabled" or "working") never use "disabled"!
+	cancelbreak: true
+	cancelplace: false
 	maxrounds: 10
 	
 
@@ -459,66 +461,53 @@ every second:
 				{mobarena::round::%loop-index%} is less than {@maxrounds}
 				set {mobarena::time::%loop-index%} to {@roundtime}
 				add 1 to {mobarena::round::%loop-index%}
-				function "mobarenamobs" {loop-index and {mobarena::round::%loop-index%}}; # ws
 				loop all players:
 					{maplayers::arena::%loop-player%} is loop-index:
 						send "{@newround}" to loop-player
-
-
-#=========={ FALE }==========#
-method "mobarenamobs" {arena and round}: # ws
-	set {_arena} to arg{1};
-	set {_round} to arg{2};
-	set {_mobs::*} to value list "round.%{_round}%" get of "plugins/MobArena/config.yml"
-	loop {_mobs::*}:
-		spawn loop-value at random element of {mobarena::spawns::%{_arena}%::*}
+				set {_mobs::*} to value list "round.%{_round}%" get of "plugins/MobArena/config.yml"
+				loop {_mobs::*}:
+					spawn loop-value at random element of {mobarena::spawns::%{_arena}%::*}
 
 #=========={ TELEPORTOWANIE PO ŚMIERCI }==========#
 on damage:
 	{maplayers::arena::%victim%} is set:
 		{maplayers::mode::%victim%} is "playing":
-			damage is greater than or equal to victim's health
-			cancel event
-			set {_arena} to {maplayers::arena::%victim%}
-			#broadcast "%{_arena}%"
-			set {_grajacy} to false
-			heal victim
-			wait 1 tick
-			#nope. force victim to respawn # randomsk
-			{mobarena::lobby2::%{_arena}%} is set:
-				teleport victim to {mobarena::lobby1::%{maplayers::arena::%victim%}%} or {mobarena::lobby2::%{maplayers::arena::%victim%}%}
-			else:
-				teleport victim to {mobarena::lobby1::%{maplayers::arena::%victim%}%}
-			extinguish victim
-			heal victim
-			set {maplayers::mode::%victim%} to "spectator"
-			loop all players:
-				{maplayers::arena::%loop-player%} is {_arena}:
-					send "{@victimdied}" to loop-player
-					{maplayers::mode::%loop-player%} is "playing":
-						set {_grajacy} to true
-			{_grajacy} is false:
-				#clear {mobarena::round::%{_arena}%}
-				#clear {mobarena::time::%{_arena}%}
-				#set {mobarena::mode::%{_arena}%} to "enabled"
+			damage is greater than or equal to victim's health:
+				cancel event
+				set {_arena} to {maplayers::arena::%victim%}
+				set {_grajacy} to false
+				heal victim
+				wait 1 tick
+				#nope. force victim to respawn # randomsk
+				{mobarena::lobby2::%{_arena}%} is set:
+					teleport victim to {mobarena::lobby1::%{maplayers::arena::%victim%}%} or {mobarena::lobby2::%{maplayers::arena::%victim%}%}
+				else:
+					teleport victim to {mobarena::lobby1::%{maplayers::arena::%victim%}%}
+				extinguish victim
+				heal victim
+				set {maplayers::mode::%victim%} to "spectator"
 				loop all players:
 					{maplayers::arena::%loop-player%} is {_arena}:
-						send "{@lastdied}" to loop-player
-						execute loop-player command "/ma leave"
-				execute server command "/maadmin stop %{_arena}%"
+						send "{@victimdied}" to loop-player
+						{maplayers::mode::%loop-player%} is "playing":
+							set {_grajacy} to true
+				{_grajacy} is false:
+					loop all players:
+						{maplayers::arena::%loop-player%} is {_arena}:
+							send "{@lastdied}" to loop-player
+							execute loop-player command "/ma leave"
+					execute server command "/maadmin stop %{_arena}%"
 
 on break:
 	{maplayers::arena::%player%} is set:
-		{@blockdigging} is true:
+		{@cancelbreak} is true:
 			cancel event
 			send "{@youcannotdig}"
-on quit:
+on place:
 	{maplayers::arena::%player%} is set:
-		execute player command "/ma leave"
-
-on join:
-	{maplayers::arena::%player%} is set:
-		execute player command "/ma leave"
+		{@cancelplace} is true:
+			cancel event
+			send "{@youcannotplace}"
 
 on command:
 	{maplayers::arena::%player%} is set:
@@ -527,7 +516,14 @@ on command:
 		cancel event
 		send "{@cancel}"
 
+#=========={ DEBUG }==========#
+on quit:
+	{maplayers::arena::%player%} is set:
+		execute player command "/ma leave"
 
+on join:
+	{maplayers::arena::%player%} is set:
+		execute player command "/ma leave"
 
 
 #arena mode:   working, enabled, disabled
@@ -541,9 +537,3 @@ on command:
   #      set the chestplate of player to {maplayers::inventory::%player%.chestplate}
    #     set the leggings of player to {maplayers::inventory::%player%.leggins}
     #    set the boots of player to {maplayers::inventory::%player%.boots}
-
-
-
-       #         loop blocks within location {@1start} to location {@1end}:
-       #                 set loop-block to stone
-       #                 broadcast "Debug:looped"
