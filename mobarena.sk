@@ -476,9 +476,6 @@ on damage:
 				cancel event
 				set {_arena} to {maplayers::arena::%victim%}
 				set {_grajacy} to false
-				heal victim
-				wait 1 tick
-				#nope. force victim to respawn # randomsk
 				{mobarena::lobby2::%{_arena}%} is set:
 					teleport victim to {mobarena::lobby1::%{maplayers::arena::%victim%}%} or {mobarena::lobby2::%{maplayers::arena::%victim%}%}
 				else:
