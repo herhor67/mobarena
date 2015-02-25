@@ -47,7 +47,7 @@ options:
 	notplaying: &cNie grasz na żadnej arenie!
 	youcannotdig: &cNie możesz kopać w czasie rozgrywki!
 	youcannotplace: &cNie możesz stawiać bloków w czasie rozgrywki!
-	newround: &aNowa runda!
+	newround: &aNowa runda: &l%{_round}%&a!
 #config
 	roundtime: 20
 	canjointo: "working" # ("enabled"|"working"|"enabled" or "working") never use "disabled"!
@@ -56,9 +56,11 @@ options:
 	maxrounds: 10
 
 on script load:
-	if file "plugins/MobArena/config.yml" isn't exist:
-		send "[MobArena] Config not found! Downloading..."
-		download "" to "plugins/MobArena/config.yml"
+	if file "plugins/MobArena/config.yml" exists:
+		send "[MobArena] Config found!" to console
+	else:
+		send "[MobArena] Config not found! Downloading..." to console
+		download "https://raw.githubusercontent.com/herhor67/mobarena/master/config.yml" to "plugins/MobArena/config.yml"
 	set {_messages::*} to configuration section "messages" get of "plugins/MobArena/config.yml"
 	loop {_messages::*}:
 		set {mobarena::config::messages::%loop-value%} to single value "messages.%loop-value%" get of "plugins/MobArena/config.yml"
@@ -356,13 +358,14 @@ command /mobarena [<text="help">] [<text>]:
 				#broadcast "%{maplayers::arena::%player%}%"
 				set {_arena} to {maplayers::arena::%player%}
 				clear {maplayers::arena::%player%}
+				clear player's inventory
 #------ Backup ------#
-				#{maplayers::inventory::%player%} is true:
-				#	set player's inventory to {maplayers::inventory::%player%::eq}
-				#	set the helmet of player to {maplayers::inventory::%player%::helmet}
-				#	set the chestplate of player to {maplayers::inventory::%player%::chestplate}
-				#	set the leggings of player to {maplayers::inventory::%player%::leggins}
-				#	set the boots of player to {maplayers::inventory::%player%::boots}
+				{maplayers::inventory::%player%} is true:
+					set player's inventory to {maplayers::inventory::%player%::eq}
+					set the helmet of player to {maplayers::inventory::%player%::helmet}
+					set the chestplate of player to {maplayers::inventory::%player%::chestplate}
+					set the leggings of player to {maplayers::inventory::%player%::leggins}
+					set the boots of player to {maplayers::inventory::%player%::boots}
 #------ Then ------#
 				send "{@left}"
 				set {_grajacy} to false
@@ -459,8 +462,8 @@ on rightclick on sign:
 							set {maplayers::mode::%loop-player%} to "playing"
 							set {_arena} to {maplayers::arena::%player%}
 				set {mobarena::mode::%{_arena}%} to "working"
-				set {mobarena::time::%{_arena}%} to 20
-				set {mobarena::round::%{_arena}%} to 1
+				set {mobarena::time::%{_arena}%} to 5
+				set {mobarena::round::%{_arena}%} to 0
 
 #------ Rundy ------#
 
@@ -472,12 +475,15 @@ every second:
 				{mobarena::round::%loop-index%} is less than {@maxrounds}
 				set {mobarena::time::%loop-index%} to {@roundtime}
 				add 1 to {mobarena::round::%loop-index%}
+				set {_round} to {mobarena::round::%loop-index%} 
 				loop all players:
 					{maplayers::arena::%loop-player%} is loop-index:
 						send "{@newround}" to loop-player
 				set {_mobs::*} to value list "round.%{_round}%" get of "plugins/MobArena/config.yml"
 				loop {_mobs::*}:
-					spawn loop-value at random element of {mobarena::spawns::%{_arena}%::*}
+					set {_mob} to loop-value-2
+					#sset {_mob} to {_mob} parsed as type of entity
+					spawn {_mob} at random element of {mobarena::spawns::%{_arena}%::*}
 
 #=========={ TELEPORTOWANIE PO ŚMIERCI }==========#
 on damage:
