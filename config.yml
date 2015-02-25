@@ -48,7 +48,7 @@ messages:
   notplaying: '&cNie grasz na żadnej arenie!'
   youcannotdig: '&cNie możesz kopać w czasie rozgrywki!'
 
-config:
+settings:
   roundtime: 20 # in seconds
   canjointo: '"working"' # spectators can join to arenas: ("enabled"|"working"|"enabled" or "working")
   canceldigging: true
