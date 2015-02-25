@@ -56,9 +56,15 @@ options:
 	maxrounds: 10
 
 on script load:
+	if file "plugins/MobArena/config.yml" isn't exist:
+		download "" to "plugins/MobArena/config.yml"
 	set {_messages::*} to configuration section "messages" get of "plugins/MobArena/config.yml"
 	loop {_messages::*}:
 		set {mobarena::config::messages::%loop-value%} to single value "messages.%loop-value%" get of "plugins/MobArena/config.yml"
+	set {_settings::*} to configuration section "settings" get of "plugins/MobArena/config.yml"
+	loop {_settings::*}:
+		set {mobarena::config::settings::%loop-value%} to single value "settings.%loop-value%" get of "plugins/MobArena/config.yml"
+	
 
 command /mobarenaadmin [<text="help">] [<text>] [<text>]:
 	aliases: maadmin, madmin
