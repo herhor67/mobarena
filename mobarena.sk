@@ -95,7 +95,6 @@ command /mobarenaadmin [<text="help">] [<text>] [<text>]:
 						clear {mobarena::spawns::%arg 2%::*}
 						clear {mobarena::lobby1::%arg 2%}
 						clear {mobarena::lobby2::%arg 2%}
-						delete wg region "mobarena%arg 2%" in world {mobarena::world::%arg 2%} # piratesk
 						clear {mobarena::point1::%arg 2%}
 						clear {mobarena::point2::%arg 2%}
 						clear {mobarena::mode::%arg 2%}
@@ -142,10 +141,7 @@ command /mobarenaadmin [<text="help">] [<text>] [<text>]:
 					{mobarena::point1::%arg 2%} is set:
 						player is in world {mobarena::world::%arg 2%}:
 							set {mobarena::point2::%arg 2%} to location of player
-							set {_w} to player's world
-							create wg region "mobarena%arg 2%" between {mobarena::point1::%arg 2%} and {mobarena::point2::%arg 2%} in world {_w} # piratesk
 							send "{@point2set}"
-							send "{@regioncreated}"
 						else:
 							set {_world} to {mobarena::world::%arg 2%}
 							send "{@badworld}"
@@ -249,6 +245,7 @@ command /mobarenaadmin [<text="help">] [<text>] [<text>]:
 					{mobarena::mode::%arg 2%} is "enabled":
 						set {mobarena::mode::%arg 2%} to "disabled"
 						send "{@disabled}"
+						delete wg region "mobarena%arg 2%" in world {mobarena::world::%arg 2%} # piratesk
 						stop
 					{mobarena::mode::%arg 2%} is "working":
 						send "{@stopfirst}"
