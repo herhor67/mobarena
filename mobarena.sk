@@ -247,10 +247,10 @@ command /mobarenaadmin [<text="help">] [<text>] [<text>]:
 						send "{@disabled}"
 						delete wg region "mobarena%arg 2%" in world {mobarena::world::%arg 2%} # piratesk
 						stop
-					{mobarena::mode::%arg 2%} is "working":
+					else if {mobarena::mode::%arg 2%} is "working":
 						send "{@stopfirst}"
 						stop
-					{mobarena::mode::%arg 2%} is "disabled":
+					else if {mobarena::mode::%arg 2%} is "disabled":
 						{mobarena::point1::%arg 2%} is set:
 							{mobarena::point2::%arg 2%} is set:
 								{mobarena::spawn::%arg 2%} is set:
