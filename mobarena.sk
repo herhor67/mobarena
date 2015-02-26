@@ -67,6 +67,8 @@ on script load:
 	set {_settings::*} to configuration section "settings" get of "plugins/MobArena/config.yml"
 	loop {_settings::*}:
 		set {mobarena::config::settings::%loop-value%} to single value "settings.%loop-value%" get of "plugins/MobArena/config.yml"
+	set {mobarena::config::howtocreate::*} to value list "howtocreate" get of "plugins/MobArena/config.yml"
+	send "[MobArena] Succesfully loaded!" to console
 	
 
 command /mobarenaadmin [<text="help">] [<text>] [<text>]:
@@ -81,6 +83,8 @@ command /mobarenaadmin [<text="help">] [<text>] [<text>]:
 					set {mobarena::list::%arg 2%} to true
 					set {mobarena::mode::%arg 2%} to "disabled"
 					set {mobarena::world::%arg 2%} to player's world
+					loop {mobarena::config::howtocreate::*}:
+						send "%loop-value%"
 				else:
 					send "{@alreadyexist}"
 			else:
