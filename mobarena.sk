@@ -124,10 +124,6 @@ command /mobarenaadmin [<text="help">] [<text>] [<text>]:
 					player is in world {mobarena::world::%arg 2%}:
 						set {mobarena::point1::%arg 2%} to location of player
 						send "{@point1set}"
-						{mobarena::point2::%arg 2%} is set:
-							send "{@regioncreated}"
-							set {_w} to player's world
-							create wg region "mobarena%arg 2%" between {mobarena::point1::%arg 2%} and {mobarena::point2::%arg 2%} in world {_w} # piratesk
 					else:
 						set {_world} to {mobarena::world::%arg 2%}
 						send "{@badworld}"
@@ -257,6 +253,7 @@ command /mobarenaadmin [<text="help">] [<text>] [<text>]:
 									size of {mobarena::spawns::%arg 2%::*} is greater than 0:
 										{mobarena::lobby1::%arg 2%} is set:
 											send "{@enabled}"
+											create wg region "mobarena%arg 2%" between {mobarena::point1::%arg 2%} and {mobarena::point2::%arg 2%} in world {mobarena::world::%arg 2%} # piratesk
 											set {mobarena::mode::%arg 2%} to "enabled"
 										else:
 											send "{@confnotended}"
