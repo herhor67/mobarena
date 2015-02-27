@@ -102,11 +102,14 @@ command /mobarenaadmin [<text="help">] [<text>] [<text>]:
 						clear {mobarena::point1::%arg 2%}
 						clear {mobarena::point2::%arg 2%}
 						clear {mobarena::mode::%arg 2%}
+						stop
 					{mobarena::mode::%arg 2%} is "working":
 						send "{@stopfirst}"
 						send "{@changemode}"
+						stop
 					{mobarena::mode::%arg 2%} is "enabled":
 						send "{@changemode}"
+						stop
 				else:
 					send "{@doesntexist}"
 			else:
@@ -116,12 +119,15 @@ command /mobarenaadmin [<text="help">] [<text>] [<text>]:
 			loop {mobarena::list::*}:
 				{mobarena::mode::%loop-index%} is "working":
 					send "&6%{_number}%. &e%loop-index%"
+					add 1 to {_numer}
 			loop {mobarena::list::*}:
 				{mobarena::mode::%loop-index%} is "enabled":
 					send "&2%{_number}%. &a%loop-index%"
+					add 1 to {_numer}
 			loop {mobarena::list::*}:
 				{mobarena::mode::%loop-index%} is "disabled":
 					send "&4%{_number}%. &c%loop-index%"
+					add 1 to {_numer}
 		arg 1 is "setpoint1" or "ustawpunkt1":
 			arg 2 is set:
 				{mobarena::list::%arg 2%} is true:
@@ -246,6 +252,7 @@ command /mobarenaadmin [<text="help">] [<text>] [<text>]:
 						set {mobarena::mode::%arg 2%} to "disabled"
 						send "{@disabled}"
 						delete wg region "mobarena%arg 2%" in world {mobarena::world::%arg 2%} # piratesk
+						wait 3 ticks
 						stop
 					else if {mobarena::mode::%arg 2%} is "working":
 						send "{@stopfirst}"
@@ -320,7 +327,7 @@ command /mobarena [<text="help">] [<text>]:
 			loop {mobarena::list::*}:
 				{mobarena::mode::%loop-index%} is "working":
 					send "&6&l%{_number}%. &e%loop-index%"
-		arg 1 is "join" or "dolacz":
+		else if arg 1 is "join" or "dolacz":
 			arg 2 is set:
 				{mobarena::list::%arg 2%} is true:
 					{mobarena::mode::%arg 2%} is "enabled":
@@ -351,7 +358,7 @@ command /mobarena [<text="help">] [<text>]:
 					send "{@doesntexist}"
 			else:
 				send "{@namenotgiven}"
-		arg 1 is "leave" or "wyjdz":
+		else if arg 1 is "leave" or "wyjdz":
 			{maplayers::arena::%player%} is set:
 				#broadcast "%{maplayers::arena::%player%}%"
 				set {_arena} to {maplayers::arena::%player%}
@@ -391,7 +398,7 @@ command /mobarena [<text="help">] [<text>]:
 				clear {maplayers::location::%player%}
 			else:
 				send "{@notplaying}"
-		arg 1 is "spectate" or "ogladaj":
+		else if arg 1 is "spectate" or "ogladaj":
 			arg 2 is set:
 				{mobarena::list::%arg 2%} is true:
 					{mobarena::mode::%arg 2%} is {@canjointo}:
@@ -412,7 +419,7 @@ command /mobarena [<text="help">] [<text>]:
 					send "{@doesntexist}"
 			else:
 				send "{@namenotgiven}"
-		arg 1 is "help" or "pomoc":
+		else:
 			send "&6##=========={ &2Mob&4Arena &6}==========##"
 			send "&c/ma join <nazwa> &6- dołączasz do areny"
 			send "&c/ma leave &6- opuszczasz arenę"
