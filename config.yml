@@ -55,9 +55,8 @@ settings:
   cancelplacing: false # required if you want to place some tnt
   maxrounds: 10
 
-round:
-  1:
-    - zombie
-    - skeleton
-    - spider
-    - creeper
+mobs:
+  - zombie
+  - skeleton
+  - spider
+  - creeper
