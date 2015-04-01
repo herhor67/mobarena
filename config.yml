@@ -60,3 +60,62 @@ mobs:
   - skeleton
   - spider
   - creeper
+  - zombie pigman
+  - angry wolf
+
+kits:
+  Knight:
+    items:
+      - diamond sword
+      - 3 potion:8197
+    armor:
+      - 306
+      - 307
+      - 308
+      - 309
+  Tank:
+    items:
+      - iron sword
+      - 2 potion:8229
+    armor:
+      - 310
+      - 311
+      - 312
+      - 313
+  Archer:
+    items:
+      - wooden sword
+      - bow
+      - 256 arrow
+      - 3 potion:8197
+      - bone
+    armor:
+      - 298
+      - 299
+      - 300
+      - 301
+  Chemist:
+    items:
+      - stone sword
+      - 9 potion:16428
+      - 9 potion:16388
+      - 9 potion:16389
+      - 3 potion:8197
+      - potion:8226
+    armor:
+      - 314
+      - 315
+      - 316
+      - 317
+  Oddjob:
+    items:
+      - stone sword
+      - flint and steel
+      - 2 netherrack
+      - 4 tnt
+      - 3 potion:8197
+    armor:
+      - 298
+      - 299
+      - 300
+      - 301
