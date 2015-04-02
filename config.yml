@@ -1,52 +1,17 @@
-messages:
-  noperm: '&cNie masz uprawnień aby to zrobić!'
-#========={ ADMIN MESSAGES }==========#
-  created: '&aUtworzono arenę %arg 2%!'
-  alreadyexist: '&cArena %arg 2% już istnieje!'
-  namenotgiven: '&cPodaj nazwę areny!'
-  deleted: '&aUsunięto arenę %arg 2%!'
-  doesntexist: '&cArena %arg 2% nie istnieje!'
-  badworld: '&cArena nie została stworzona w tym świecie! Wejdź na mapę &l%{_swiat}%&c!'
-  point1set: '&aPunkt 1 areny %arg 2% został ustawiony na %location of player%!'
-  point2set: '&aPunkt 2 areny %arg 2% został ustawiony na %location of player%!'
-  setp1first: '&cUstaw najpierw punkt 1! &l/maadmin (setpoint1|ustawpunkt1) %arg 2%'
-  regioncreated: '&aStworzono region areny!'
-  playersspawnset: '&aUstawiono spawn graczy areny %arg 2% na %location of player%!'
-  mobspawnset: '&aUstawiono spawn mobów ##%{_spawn}% na %location of player%!'
-  howtodelete: '&aWpisz &l/ma (deletemobspawn|usunspawnmobow) %arg 2% %{_spawn}% &aaby usunąć ten spawn!'
-  deletedmobspawn: '&aUsunięto spawn mobów ##%{_spawn}% na arenie %arg 2%!'
-  msdntexist: '&cSpawn mobów ##%{_spawn}% na arenie %arg 2% nie istnieje! Podaj wartość między 0 a %{_ilosc}%!'
-  idnotgiven: '&cPodaj numer spawnu mobów!'
-  lobbyset: '&aUstawiono lobby areny {ARENA} na %location of player%!'
-  disabled: '&aWyłączono arenę {ARENA}!'
-  enabled: '&aWłączono arenę {ARENA}!'
-  confnotended: '&cArena {ARENA} nie została skonfigurowana do końca!'
-  youstopped: '&aZatrzymałeś grę na arenie {ARENA}!'
-  notworking: '&cNa arenie {ARENA} nie trwa rozgrywka!'
-  stopfirst: '&cNajpierw zatrzymaj arenę! &l/madmin (stop|zatrzymaj) {ARENA}'
-  kitroomset: '&aUstawiono miejsce wyboru klas na {LOCATION}!'
-  changemode: '&cZmień tryb areny! &l/madmin (mode|tryb) {ARENA}'
-#=========={ PLAYER MESSAGES }==========#
-  arenastopped: '&cGracz &l{PLAYER} &czatrzymał arenę!'
-  playerjoined: '&aGracz &l{PLAYER} &adołączył do areny!'
-  joined: '&aDołączyłeś do areny &l{ARENA}&a!'
-  left: '&aWyszedłeś z areny &l{ARENA}&a!'
-  selectclass: '&aWybierz klasę i kliknij na tabliczkę!'
-  notplayable: '&cNie możesz obecnie grać na tej arenie!'
-  alreadyplaying: '&cJuż grasz na mobarenie {ARENA}! Nie możesz zmienić areny!'
-  tptolobby: '&aTeleportowano do lobby areny {ARENA}!'
-  receivedkit: '&aOtrzymałeś zestaw &l{KIT}&a!'
-  playerisready: '&aGracz &l{PLAYER} &ajest gotowy do gry!'
-  teleported: '&aWszyscy walczący zostali teleportowani na arenę!'
-  victimdied: '&aGracz &l{PLAYER} &azginął!'
-  lastdied: '&aBył to ostatni gracz na arenie!'
-  playerleft: '&aGracz &l{PLAYER} &aopuścił rozgrywkę!'
-  lastleft: '&aBył to ostatni gracz na arenie!'
-  cancel: '&cJesteś na arenie! Aby to zrobić, wyjdź z niej, wpisując &l/ma leave'
-  chooseclass: '&aWybierz swoją klasę!'
-  unavailable: '&cNie możesz oglądać rozgrywki na arenie {ARENA}!'
-  notplaying: '&cNie grasz na żadnej arenie!'
-  youcannotdig: '&cNie możesz kopać w czasie rozgrywki!'
+howtocreate:
+  - '&e##===================={ &2Mob&4Arena &e}====================##'
+  - '&c/madmin (create|utworz) <nazwa> &6- tworzy arene o podanej nazwie'
+  - '&c/madmin (delete|usun) <nazwa> &6- usuwa arene'
+  - '&c/madmin (list|lista) &6- lista aren z podzialem na status'
+  - '&c/madmin (setpoint1|ustawpunkt1) <nazwa> &6- ustawia 1 rog areny'
+  - '&c/madmin (setpoint2|ustawpunkt2) <nazwa> &6- ustawia 2 (przeciwlegly) rog areny'
+  - '&c/madmin (setspawn|ustawspawn) <nazwa> &6- ustawia miejsce teleportacji graczy'
+  - '&c/madmin (addmobspawn|dodajspawnmobow) <nazwa> <id> &6- dodaje spawn mobow o podanym id'
+  - '&c/madmin (deletemobspawn|usunspawnmobow) <nazwa> <id> &6- usuwa spawn o podanym id'
+  - '&c/madmin (setlobby|ustawlobby)(1|2) <nazwa> &6- ustawa lobby 1 lub 2'
+  - '&c/madmin (kitroom|pokojkitow) <nazwa> &6- ustawia miejsce wyboru klas'
+  - '&c/madmin (mode|tryb) <nazwa> &6- wlacza lub wylacza arene z uzytku'
+  - '&c/madmin (stop|zatrzymaj) <nazwa> &6- zatrzymuje rozgrywke na podanej arenie'
 
 settings:
   roundtime: 20 # in seconds
@@ -61,7 +26,9 @@ mobs:
   - spider
   - creeper
   - zombie pigman
-  - angry wolf
+  - silverfish
+  - villager
+  
 
 kits:
   Knight:
