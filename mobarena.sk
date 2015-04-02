@@ -57,7 +57,6 @@ options:
 	cancelbreak: true
 	cancelplace: false
 	maxrounds: 10
-	mobs: zombie or creeper or spider or skeleton
 
 on script load:
 	if file "plugins/MobArena/config.yml" exists:
@@ -87,13 +86,11 @@ command /mobarenaadmin [<text="help">] [<text>] [<text>]:
 					set {mobarena::list::%arg 2%} to true
 					set {mobarena::mode::%arg 2%} to "disabled"
 					set {mobarena::world::%arg 2%} to player's world
-					loop {mobarena::config::howtocreate::*}:
-						send "%loop-value%"
 				else:
 					send "{@alreadyexist}"
 			else:
 				send "{@namenotgiven}"
-		arg 1 is "delete" or "usun":
+		else if arg 1 is "delete" or "usun":
 			arg 2 is set:
 				{mobarena::list::%arg 2%} is true:
 					{mobarena::mode::%arg 2%} is "disabled":
@@ -115,7 +112,7 @@ command /mobarenaadmin [<text="help">] [<text>] [<text>]:
 					send "{@doesntexist}"
 			else:
 				send "{@namenotgiven}"
-		arg 1 is "lista" or "list":
+		else if arg 1 is "lista" or "list":
 			set {_number} to 1
 			loop {mobarena::list::*}:
 				{mobarena::mode::%loop-index%} is "working":
@@ -126,7 +123,7 @@ command /mobarenaadmin [<text="help">] [<text>] [<text>]:
 			loop {mobarena::list::*}:
 				{mobarena::mode::%loop-index%} is "disabled":
 					send "&4%{_number}%. &c%loop-index%"
-		arg 1 is "setpoint1" or "ustawpunkt1":
+		else if arg 1 is "setpoint1" or "ustawpunkt1":
 			arg 2 is set:
 				{mobarena::list::%arg 2%} is true:
 					player is in world {mobarena::world::%arg 2%}:
@@ -139,7 +136,7 @@ command /mobarenaadmin [<text="help">] [<text>] [<text>]:
 					send "{@doesntexist}"
 			else:
 				send "{@namenotgiven}"
-		arg 1 is "setpoint2" or "ustawpunkt2":
+		else if arg 1 is "setpoint2" or "ustawpunkt2":
 			arg 2 is set:
 				{mobarena::list::%arg 2%} is true:
 					{mobarena::point1::%arg 2%} is set:
@@ -155,7 +152,7 @@ command /mobarenaadmin [<text="help">] [<text>] [<text>]:
 					send "{@doesntexist}"
 			else:
 				send "{@namenotgiven}"
-		arg 1 is "setspawn" or "ustawspawn":
+		else if arg 1 is "setspawn" or "ustawspawn":
 			arg 2 is set:
 				{mobarena::list::%arg 2%} is true:
 					player is in world {mobarena::world::%arg 2%}:
@@ -168,7 +165,7 @@ command /mobarenaadmin [<text="help">] [<text>] [<text>]:
 					send "{@doesntexist}"
 			else:
 				send "{@namenotgiven}"
-		arg 1 is "addmobspawn" or "dodajspawnmobow":
+		else if arg 1 is "addmobspawn" or "dodajspawnmobow":
 			arg 2 is set:
 				{mobarena::list::%arg 2%} is true:
 					arg 3 is set:
@@ -182,7 +179,7 @@ command /mobarenaadmin [<text="help">] [<text>] [<text>]:
 					send "{@doesntexist}"
 			else:
 				send "{@namenotgiven}"
-		arg 1 is "deletemobspawn" or "usunspawnmobow":
+		else if arg 1 is "deletemobspawn" or "usunspawnmobow":
 			arg 2 is set:
 				{mobarena::list::%arg 2%} is true:
 					arg 3 is set:
@@ -198,7 +195,7 @@ command /mobarenaadmin [<text="help">] [<text>] [<text>]:
 					send "{@doesntexist}"
 			else:
 				send "{@namenotgiven}"
-		arg 1 is "setlobby1" or "ustawobby1":
+		else if arg 1 is "setlobby1" or "ustawobby1":
 			arg 2 is set:
 				{mobarena::list::%arg 2%} is true:
 					player is in world {mobarena::world::%arg 2%}:
@@ -211,7 +208,7 @@ command /mobarenaadmin [<text="help">] [<text>] [<text>]:
 					send "{@doesntexist}"
 			else:
 				send "{@namenotgiven}"
-		arg 1 is "setlobby2" or "ustawobby2":
+		else if arg 1 is "setlobby2" or "ustawobby2":
 			arg 2 is set:
 				{mobarena::list::%arg 2%} is true:
 					player is in world {mobarena::world::%arg 2%}:
@@ -224,7 +221,7 @@ command /mobarenaadmin [<text="help">] [<text>] [<text>]:
 					send "{@doesntexist}"
 			else:
 				send "{@namenotgiven}"
-		arg 1 is "kitroom" or "pokojkitow":
+		else if arg 1 is "kitroom" or "pokojkitow":
 			arg 2 is set:
 				{mobarena::list::%arg 2%} is true:
 					player is in world {mobarena::world::%arg 2%}:
@@ -237,7 +234,7 @@ command /mobarenaadmin [<text="help">] [<text>] [<text>]:
 					send "{@doesntexist}"
 			else:
 				send "{@namenotgiven}"
-		arg 1 is "mode" or "tryb":
+		else if arg 1 is "mode" or "tryb":
 			arg 2 is set:
 				{mobarena::list::%arg 2%} is true:
 					{mobarena::mode::%arg 2%} is "enabled":
@@ -274,7 +271,7 @@ command /mobarenaadmin [<text="help">] [<text>] [<text>]:
 					send "{@doesntexist}"
 			else:
 				send "{@namenotgiven}"
-		arg 1 is "stop" or "zatrzymaj":
+		else if arg 1 is "stop" or "zatrzymaj":
 			arg 2 is set:
 				{mobarena::list::%arg 2%} is set:
 					{mobarena::mode::%arg 2%} is "working":
@@ -295,20 +292,12 @@ command /mobarenaadmin [<text="help">] [<text>] [<text>]:
 					send "{@doesntexist}"
 			else:
 				send "{@namenotgiven}"
-		arg 1 is "help" or "pomoc":
-			send "&e##===================={ &2Mob&4Arena &e}====================##"
-			send "&c/madmin (create|utworz) <nazwa> &6- tworzy arenę o podanej nazwie"
-			send "&c/madmin (delete|usun) <nazwa> &6- usuwa arenę"
-			send "&c/madmin (list|lista) &6- lista aren z podziałem na status"
-			send "&c/madmin (setpoint1|ustawpunkt1) <nazwa> &6- ustawia 1 róg areny"
-			send "&c/madmin (setpoint2|ustawpunkt2) <nazwa> &6- ustawia 2 (przeciwległy) róg areny"
-			send "&c/madmin (setspawn|ustawspawn) <nazwa> &6- ustawia miejsce teleportacji graczy"
-			send "&c/madmin (addmobspawn|dodajspawnmobow) <nazwa> &6- dodaje spawn mobów"
-			send "&c/madmin (deletemobspawn|usunspawnmobow) <nazwa> <id> &6- usuwa spawn o podanym id"
-			send "&c/madmin (setlobby|ustawlobby)(1|2) <nazwa> &6- ustawa punkt obserwacyjny 1 lub 2"
-			send "&c/madmin (kitroom|pokojkitow) <nazwa> &6- ustawia miejsce wyboru klas"
-			send "&c/madmin (mode|tryb) <nazwa> &6- włącza lub wyłącza arenę z użytku"
-			send "&c/madmin (stop|zatrzymaj) <nazwa> &6- zatrzymuje rozgrywkę na podanej arenie"
+		else if arg 1 is "download" or "pobierz":
+			send "Downloading..."
+			download "https://raw.githubusercontent.com/herhor67/mobarena/master/mobarena.sk" to "plugins/Skript/scripts/%script%.sk"
+		else:
+			loop {mobarena::config::howtocreate::*}:
+				send "%loop-value%"
 	
 
 command /mobarena [<text="help">] [<text>]:
