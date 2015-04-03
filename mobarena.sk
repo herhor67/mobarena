@@ -28,7 +28,7 @@ options:
 	gameplayended: &aGra się skończyła! Minęło {@maxrounds} rund!
 #=========={ PLAYER MESSAGES }==========#
 	arenastopped: &cGracz %sender% zatrzymał arenę!
-	playerjoined: &aGracz %player% dołączył do areny!
+	playerjoined: &aGracz &l%player% &adołączył do areny!
 	joined: &aDołączyłeś do areny %arg 2%!
 	left: &aWyszedłeś z areny!
 	selectclass: &aWybierz klasę i kliknij na &l{@blok}&a!
@@ -44,19 +44,21 @@ options:
 	lastleft: &aBył to ostatni gracz na arenie!
 	cancel: &cJesteś na arenie! Aby to zrobić, wyjdź z niej, wpisując &l/ma leave
 	chooseclass: &aWybierz swoją klasę!
-	unavailable: &cArena nie możesz oglądać rozgrywki na tej arenie!
+	unavailable: &cNie możesz oglądać rozgrywki na tej arenie!
 	notplaying: &cNie grasz na żadnej arenie!
 	youcannotdig: &cNie możesz kopać w czasie rozgrywki!
 	youcannotplace: &cNie możesz stawiać bloków w czasie rozgrywki!
 	newround: &aNowa runda: &l%{_round}%&a!
 	youcantdrop: &cNie możesz teraz wyrzucać itemów!
 	youcantusepotions: &cNie możesz teraz używać mikstur!
+	youarealreadyready: &cJuż jesteś gotowy!
 #config
 	roundtime: 10
 	canjointo: "working" # ("enabled"|"working"|"enabled" or "working") never use "disabled"!
 	cancelbreak: true
 	cancelplace: false
 	maxrounds: 10
+	countdown: 10
 
 on script load:
 	if file "plugins/MobArena/config.yml" exists:
@@ -116,13 +118,13 @@ command /mobarenaadmin [<text="help">] [<text>] [<text>]:
 			set {_number} to 1
 			loop {mobarena::list::*}:
 				{mobarena::mode::%loop-index%} is "working":
-					send "&6%{_number}%. &e%loop-index%"
+					send "&6&l%{_number}%. &e%loop-index%"
 			loop {mobarena::list::*}:
 				{mobarena::mode::%loop-index%} is "enabled":
-					send "&2%{_number}%. &a%loop-index%"
+					send "&2&l%{_number}%. &a%loop-index%"
 			loop {mobarena::list::*}:
 				{mobarena::mode::%loop-index%} is "disabled":
-					send "&4%{_number}%. &c%loop-index%"
+					send "&4&l%{_number}%. &c%loop-index%"
 		else if arg 1 is "setpoint1" or "ustawpunkt1":
 			arg 2 is set:
 				{mobarena::list::%arg 2%} is true:
@@ -284,7 +286,7 @@ command /mobarenaadmin [<text="help">] [<text>] [<text>]:
 						set {mobarena::time::%arg 2%} to 5
 						set {mobarena::round::%arg 2%} to 0
 						loop all entities:
-							{mobarenaentities::%loop-entity%} is arg 2:
+							{maentities::%loop-entity%} is arg 2:
 								delete loop-entity
 					else:
 						send "{@notworking}"
@@ -295,6 +297,8 @@ command /mobarenaadmin [<text="help">] [<text>] [<text>]:
 		else if arg 1 is "download" or "pobierz":
 			send "Downloading..."
 			download "https://raw.githubusercontent.com/herhor67/mobarena/master/mobarena.sk" to "plugins/Skript/scripts/%script%.sk"
+			send "Dwonloaded!"
+			execute player command "/sk reload %script%"
 		else:
 			loop {mobarena::config::howtocreate::*}:
 				send "%loop-value%"
@@ -333,6 +337,8 @@ command /mobarena [<text="help">] [<text>]:
 								{maplayers::arena::%loop-player%} is arg 2:
 									send "{@playerjoined}" to loop-player
 							set {maplayers::arena::%player%} to arg 2
+							set {mobarena::countdown::%arg 2%} to false
+							set {mobarena::timeleft::%arg 2%} to {@countdown}
 							send "{@joined}"
 							send "{@chooseclass}"
 						else:
@@ -358,7 +364,7 @@ command /mobarena [<text="help">] [<text>]:
 					set the boots of player to {maplayers::inventory::%player%::boots}
 #------ Then ------#
 				send "{@left}"
-				set {_grajacy} to false
+				set {_niegotowi} to 0
 				clear {maplayers::inventory::%player%::*}
 				clear {maplayers::inventory::%player%}
 				{maplayers::mode::%player%} is "playing":
@@ -376,8 +382,22 @@ command /mobarena [<text="help">] [<text>]:
 								send "{@lastleft}" to loop-player
 								execute loop-player command "/ma leave"
 						execute server command "/maadmin stop %{_arena}%"
+				{maplayers::mode::%player%} is "waiting" or "ready":
+				#	broadcast "%{_arena}%"
+					set {_niegotowi} to 0
+					loop all players:
+						{maplayers::arena::%loop-player%} is {_arena}:
+							send "{@playerleft}" to loop-player
+							{maplayers::mode::%loop-player%} is "waiting":
+								add 1 to {_niegotowi}
+					{_niegotowi} is false:
+						loop all players:
+							{maplayers::arena::%loop-player%} is {_arena}:
+								send "{@lastleft}" to loop-player
+						set {mobarena::countdown::%{_arena}%} to true
 				teleport player to {maplayers::location::%player%}
 				clear {maplayers::location::%player%}
+				clear {maplayers::mode::%player%}
 			else:
 				send "{@notplaying}"
 		arg 1 is "spectate" or "ogladaj":
@@ -435,30 +455,56 @@ on rightclick on sign:
 							set {_armor} to loop-value parsed as itemtype
 							equip player with {_armor}
 						send "{@receivedkit}"
+		line 2 is "changelobby":
+			{maplayers::arena::%player%} is set:
+				{maplayers::mode::%player%} is "spectator":
+					line 3 is "1":
+						teleport player to {mobarena::lobby1::%{maplayers::arena::%player%}%}
+					line 3 is "2":
+						{mobarena::lobby1::%{maplayers::arena::%player%}%} is set:
+							teleport player to {mobarena::lobby2::%{maplayers::arena::%player%}%}
 #------ Gotowi ------#
 		line 2 is "ready" or "gotowy":
-			set {_niegotowi} to 0
-			set {maplayers::mode::%player%} to "ready"
-			loop all players:
-				{maplayers::arena::%loop-player%} is {maplayers::arena::%player%}:
-					send "{@playerisready}" to loop-player
-					{maplayers::mode::%loop-player%} is "waiting":
-						add 1 to {_niegotowi}
-			{_niegotowi} is 0:
+			{maplayers::mode::%player%} is "waiting":
+				set {_arena} to {maplayers::arena::%player%}
+				set {_niegotowi} to 0
+				set {mobarena::timeleft::%{_arena}%} to {@countdown}
+				set {maplayers::mode::%player%} to "ready"
 				loop all players:
-					if {maplayers::arena::%loop-player%} is {maplayers::arena::%player%}:
-						if {maplayers::mode::%loop-player%} is "waiting" or "ready":
-							teleport loop-player to {mobarena::spawn::%{maplayers::arena::%loop-player%}%}
-							send "{@teleported}" to loop-player
-							set {maplayers::mode::%loop-player%} to "playing"
-							set {_arena} to {maplayers::arena::%player%}
-				set {mobarena::mode::%{_arena}%} to "working"
-				set {mobarena::time::%{_arena}%} to 5
-				set {mobarena::round::%{_arena}%} to 0
+					{maplayers::arena::%loop-player%} is {_arena}:
+						send "{@playerisready}" to loop-player
+						{maplayers::mode::%loop-player%} is "waiting":
+							add 1 to {_niegotowi}
+				{_niegotowi} is 0:
+					set {mobarena::countdown::%{_arena}%} to true
+					wait 1.1 seconds
+					while {mobarena::countdown::%{_arena}%} is true:
+						wait 1 second
+					if {mobarena::mode::%{_arena}%} is "working":
+						loop all players:
+							if {maplayers::arena::%loop-player%} is {_arena}:
+								if {maplayers::mode::%loop-player%} is "waiting" or "ready":
+									teleport loop-player to {mobarena::spawn::%{_arena}%}
+									send "{@teleported}" to loop-player
+									set {maplayers::mode::%loop-player%} to "playing"
+						#set {mobarena::mode::%{_arena}%} to "working"
+						set {mobarena::time::%{_arena}%} to 5
+						set {mobarena::round::%{_arena}%} to 0
+			else:
+				send "{@youarealreadyready}"
 
 #------ Rundy ------#
 
 every second:
+	loop {mobarena::timeleft::*}:
+		{mobarena::countdown::%loop-index%} is true:
+			remove 1 from {mobarena::timeleft::%loop-index%}
+			loop all players:
+				{maplayers::arena::%loop-player%} is loop-index:
+					send "%loop-index%: %{mobarena::timeleft::%loop-index%}%" to loop-player
+			{mobarena::timeleft::%loop-index%} is 0:
+				set {mobarena::countdown::%loop-index%} to false
+				set {mobarena::mode::%loop-index%} to "working"
 	loop {mobarena::time::*}:
 		{mobarena::mode::%loop-index%} is "working":
 			remove 1 from {mobarena::time::%loop-index%}
@@ -470,16 +516,16 @@ every second:
 					loop all players:
 						{maplayers::arena::%loop-player%} is loop-index:
 							send "{@newround}" to loop-player
-					set {mobs::*} to value list "mobs" get of "plugins/MobArena/config.yml"
+					set {mobarena::config::mobs::*} to value list "mobs" get of "plugins/MobArena/config.yml"
 					set {_rounds} to {mobarena::round::%loop-index%}
 					set  {_rounds} to {_rounds} parsed as integer
 					loop {_rounds} times:
-						set {_mob} to a random element out of {mobs::*}
+						set {_mob} to a random element out of {mobarena::config::mobs::*}
 						set {_mob} to {_mob} parsed as entity type
 						set {_loc} to a random element out of {mobarena::spawns::%loop-index%::*}
 						#broadcast "%{_mob}% at %{_loc}%"
 						spawn {_mob} at {_loc}
-						set {mobarenaentities::%last spawned entity%} to loop-index
+						set {maentities::%last spawned entity%} to loop-index
 						#broadcast "Debug: %loop-number%"
 				else:
 					loop all players:
@@ -508,6 +554,7 @@ on damage:
 						{maplayers::mode::%loop-player%} is "playing":
 							set {_grajacy} to true
 				{_grajacy} is false:
+					wait 5 seconds
 					loop all players:
 						{maplayers::arena::%loop-player%} is {_arena}:
 							send "{@lastdied}" to loop-player
@@ -546,17 +593,17 @@ on rightclick with any potion:
 			send "{@youcantusepotions}" to player
 #=========={ MOBS }==========#
 on combust:
-	{mobarenaentities::%entity%} is set:
+	{maentities::%entity%} is set:
 		cancel event
 
 on death:
-	{mobarenaentities::%victim%} is set:
-		clear {mobarenaentities::%victim%}
+	{maentities::%victim%} is set:
+		clear {maentities::%victim%}
 		delete drops
 
 on explode:
-	entity is creeper:
-		{mobarenaentities::%entity%} is set:
+	entity is creeper or tnt:
+		{maentities::%entity%} is set:
 			cancel event
 			loop blocks in radius 5 of entity:
 				loop-block isn't air:
@@ -566,6 +613,15 @@ on explode:
 			wait 0.1 seconds
 			loop {_locations::*}:
 				set block at loop-value to {_types::%loop-index%}
+
+on rightclick on tnt:
+	player's tool is flint and steel:
+		{maplayers::arena::%player%} is set:
+			{maplayers::mode::%player%} is "playing":
+				wait 1 tick
+				loop entities in radius 0.3 of event-location:
+					loop-entity is tnt:
+						set {maentities::%loop-entity%} to {maplayers::arena::%player%}
 #=========={ DEBUG }==========#
 on quit:
 	{maplayers::arena::%player%} is set:
