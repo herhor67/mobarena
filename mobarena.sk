@@ -603,25 +603,17 @@ on death:
 
 on explode:
 	entity is creeper or tnt:
-		{maentities::%entity%} is set:
-			cancel event
-			loop blocks in radius 5 of entity:
-				loop-block isn't air:
-					add location of loop-block to {_locations::*}
-					add type of loop-block to {_types::*}
-			uncancel event
-			wait 0.1 seconds
-			loop {_locations::*}:
-				set block at loop-value to {_types::%loop-index%}
-
-on rightclick on tnt:
-	player's tool is flint and steel:
-		{maplayers::arena::%player%} is set:
-			{maplayers::mode::%player%} is "playing":
-				wait 1 tick
-				loop entities in radius 0.3 of event-location:
-					loop-entity is tnt:
-						set {maentities::%loop-entity%} to {maplayers::arena::%player%}
+		loop {mobarena::list::*}:
+			if wg region at event-location is "mobarena%loop-index%":
+				cancel event
+				loop blocks in radius 5 of entity:
+					loop-block isn't air:
+						add location of loop-block to {_locations::*}
+						add type of loop-block to {_types::*}
+				uncancel event
+				wait 0.1 seconds
+				loop {_locations::*}:
+					set block at loop-value-2 to {_types::%loop-index-2%}
 #=========={ DEBUG }==========#
 on quit:
 	{maplayers::arena::%player%} is set:
