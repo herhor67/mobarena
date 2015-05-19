@@ -25,7 +25,6 @@ options:
 	stopfirst: &cNajpierw zatrzymaj arenę! &l/madmin (stop|zatrzymaj) %arg 2%
 	kitroomset: &aUstawiono miejsce wyboru klas na %location of player%!
 	changemode: &cZmień tryb areny! &l/madmin (mode|tryb) %arg 2%
-	gameplayended: &aGra się skończyła! Minęło {@maxrounds} rund!
 #=========={ PLAYER MESSAGES }==========#
 	arenastopped: &cGracz %sender% zatrzymał arenę!
 	playerjoined: &aGracz &l%player% &adołączył do areny!
@@ -52,6 +51,8 @@ options:
 	youcantdrop: &cNie możesz teraz wyrzucać itemów!
 	youcantusepotions: &cNie możesz teraz używać mikstur!
 	youarealreadyready: &cJuż jesteś gotowy!
+	countdownmessage: &aDo rozgrywki pozostało %{mobarena::timeleft::%loop-index%}% sekund!
+	gameplayended: &aGra się skończyła po %{mobarena::round::%{_arena}%}% rundach!
 #config
 	roundtime: 10
 	canjointo: "working" # ("enabled"|"working"|"enabled" or "working") never use "disabled"!
@@ -294,6 +295,45 @@ command /mobarenaadmin [<text="help">] [<text>] [<text>]:
 					send "{@doesntexist}"
 			else:
 				send "{@namenotgiven}"
+		else if arg 1 is "end" or "zakoncz":
+			arg 2 is set:
+				{mobarena::list::%arg 2%} is set:
+					{mobarena::mode::%arg 2%} is "working":
+						send "{@youstopped}"
+						loop all players:
+							{maplayers::arena::%loop-player%} is arg 2:
+								set {_arena} to arg 2
+								send "{@gameplayended}" to loop-player
+								#=====
+								clear {maplayers::arena::%loop-player%}
+								clear loop-player's inventory
+				#------ Backup ------#
+								{maplayers::inventory::%loop-player%} is true:
+									restore inventory of loop-player from {maplayers::inventory::%loop-player%::eq}
+									set the helmet of loop-player to {maplayers::inventory::%loop-player%::helmet}
+									set the chestplate of loop-player to {maplayers::inventory::%loop-player%::chestplate}
+									set the leggings of loop-player to {maplayers::inventory::%loop-player%::leggins}
+									set the boots of loop-player to {maplayers::inventory::%loop-player%::boots}
+				#------ Then ------#
+								clear {maplayers::inventory::%loop-player%::*}
+								clear {maplayers::inventory::%loop-player%}
+								clear {maplayers::mode::%loop-player%}
+								teleport loop-player to {maplayers::location::%loop-player%}
+								clear {maplayers::location::%loop-player%}
+								clear {maplayers::mode::%loop-player%}
+								#=====
+						set {mobarena::mode::%arg 2%} to "enabled"
+						set {mobarena::time::%arg 2%} to 5
+						set {mobarena::round::%arg 2%} to 0
+						loop all entities:
+							{maentities::%loop-entity%} is arg 2:
+								delete loop-entity
+					else:
+						send "{@notworking}"
+				else:
+					send "{@doesntexist}"
+			else:
+				send "{@namenotgiven}"
 		else if arg 1 is "download" or "pobierz":
 			send "Downloading..."
 			download "https://raw.githubusercontent.com/herhor67/mobarena/master/mobarena.sk" to "plugins/Skript/scripts/%script%.sk"
@@ -380,8 +420,7 @@ command /mobarena [<text="help">] [<text>]:
 						loop all players:
 							{maplayers::arena::%loop-player%} is {_arena}:
 								send "{@lastleft}" to loop-player
-								execute loop-player command "/ma leave"
-						execute server command "/maadmin stop %{_arena}%"
+						execute server command "/maadmin end %{_arena}%"
 				{maplayers::mode::%player%} is "waiting" or "ready":
 				#	broadcast "%{_arena}%"
 					set {_niegotowi} to 0
@@ -446,11 +485,11 @@ on rightclick on sign:
 				{maplayers::arena::%player%} is set:
 					{maplayers::mode::%player%} is "waiting":
 						clear player's inventory
-						set {_items::*} to value list "kits.%line 3%.items" get of "plugins/MobArena/config.yml" # ws or skq?
+						set {_items::*} to value list "kits.%line 3%.items" get of "plugins/MobArena/config.yml" # ws
 						loop {_items::*}:
 							set {_item} to loop-value parsed as itemtype
 							give {_item} to player
-						set {_armor::*} to value list "kits.%line 3%.armor" get of "plugins/MobArena/config.yml" # ws or skq?
+						set {_armor::*} to value list "kits.%line 3%.armor" get of "plugins/MobArena/config.yml" # ws
 						loop {_armor::*}:
 							set {_armor} to loop-value parsed as itemtype
 							equip player with {_armor}
@@ -501,7 +540,8 @@ every second:
 			remove 1 from {mobarena::timeleft::%loop-index%}
 			loop all players:
 				{maplayers::arena::%loop-player%} is loop-index:
-					send "%loop-index%: %{mobarena::timeleft::%loop-index%}%" to loop-player
+					{mobarena::timeleft::%loop-index%} is less than 5:
+						send "{@countdownmessage}" to loop-player
 			{mobarena::timeleft::%loop-index%} is 0:
 				set {mobarena::countdown::%loop-index%} to false
 				set {mobarena::mode::%loop-index%} to "working"
@@ -531,7 +571,7 @@ every second:
 					loop all players:
 						{maplayers::arena::%loop-player%} is loop-index:
 							send "{@gameplayended}" to loop-player
-							execute loop-player command "/ma leave"
+					execute server command "/maadmin end %loop-index%"
 
 #=========={ TELEPORTOWANIE PO ŚMIERCI }==========#
 on damage:
@@ -554,12 +594,11 @@ on damage:
 						{maplayers::mode::%loop-player%} is "playing":
 							set {_grajacy} to true
 				{_grajacy} is false:
-					wait 5 seconds
 					loop all players:
 						{maplayers::arena::%loop-player%} is {_arena}:
 							send "{@lastdied}" to loop-player
-							execute loop-player command "/ma leave"
-					execute server command "/maadmin stop %{_arena}%"
+					wait 5 seconds
+					execute server command "/maadmin end %{_arena}%"
 
 on break:
 	{maplayers::arena::%player%} is set:
@@ -606,12 +645,11 @@ on explode:
 		loop {mobarena::list::*}:
 			if wg region at event-location is "mobarena%loop-index%":
 				cancel event
-				loop blocks in radius 5 of entity:
-					loop-block isn't air:
-						add location of loop-block to {_locations::*}
-						add type of loop-block to {_types::*}
+				loop exploded blocks:
+					add location of loop-block to {_locations::*}
+					add type of loop-block to {_types::*}
 				uncancel event
-				wait 0.1 seconds
+				wait 1 tick
 				loop {_locations::*}:
 					set block at loop-value-2 to {_types::%loop-index-2%}
 #=========={ DEBUG }==========#
