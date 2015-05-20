@@ -53,6 +53,7 @@ options:
 	youarealreadyready: &cJuż jesteś gotowy!
 	countdownmessage: &aDo rozgrywki pozostało %{mobarena::timeleft::%loop-index%}% sekund!
 	gameplayended: &aGra się skończyła po %{mobarena::round::%{_arena}%}% rundach!
+	receivedreward: &aOtrzymałeś nagrodę: %{_item}%!
 #config
 	roundtime: 10
 	canjointo: "working" # ("enabled"|"working"|"enabled" or "working") never use "disabled"!
@@ -256,7 +257,6 @@ command /mobarenaadmin [<text="help">] [<text>] [<text>]:
 										{mobarena::lobby1::%arg 2%} is set:
 											send "{@enabled}"
 											create wg region "mobarena%arg 2%" between {mobarena::point1::%arg 2%} and {mobarena::point2::%arg 2%} in world {mobarena::world::%arg 2%} # piratesk
-											execute server command "/rg flag mobarena%arg 2%  "
 											set {mobarena::mode::%arg 2%} to "enabled"
 										else:
 											send "{@confnotended}"
@@ -299,10 +299,10 @@ command /mobarenaadmin [<text="help">] [<text>] [<text>]:
 			arg 2 is set:
 				{mobarena::list::%arg 2%} is set:
 					{mobarena::mode::%arg 2%} is "working":
-						send "{@youstopped}"
+						set {_arena} to arg 2
+						send "{@gameplayended}"
 						loop all players:
 							{maplayers::arena::%loop-player%} is arg 2:
-								set {_arena} to arg 2
 								send "{@gameplayended}" to loop-player
 								#=====
 								clear {maplayers::arena::%loop-player%}
@@ -321,6 +321,12 @@ command /mobarenaadmin [<text="help">] [<text>] [<text>]:
 								teleport loop-player to {maplayers::location::%loop-player%}
 								clear {maplayers::location::%loop-player%}
 								clear {maplayers::mode::%loop-player%}
+								loop {maplayers::reward::%player%::*}:
+									set {_item} to loop-value
+									set {_itemparsed} to loop-value parsed as item
+									give {_item} to player
+									give {_itemparsed} to player
+								clear {maplayers::reward::%player%::*}
 								#=====
 						set {mobarena::mode::%arg 2%} to "enabled"
 						set {mobarena::time::%arg 2%} to 5
@@ -337,11 +343,11 @@ command /mobarenaadmin [<text="help">] [<text>] [<text>]:
 		else if arg 1 is "download" or "pobierz":
 			send "Downloading..."
 			download "https://raw.githubusercontent.com/herhor67/mobarena/master/mobarena.sk" to "plugins/Skript/scripts/%script%.sk"
-			send "Dwonloaded!"
+			send "Downloaded!"
 			execute player command "/sk reload %script%"
 		else:
 			loop {mobarena::config::howtocreate::*}:
-				send "%loop-value%"
+				send "%coloured loop-value%"
 	
 
 command /mobarena [<text="help">] [<text>]:
@@ -437,6 +443,10 @@ command /mobarena [<text="help">] [<text>]:
 				teleport player to {maplayers::location::%player%}
 				clear {maplayers::location::%player%}
 				clear {maplayers::mode::%player%}
+				loop {maplayers::reward::%player%::*}:
+					set {_itemparsed} to loop-value# parsed as item
+					give {_itemparsed} to player
+				clear {maplayers::reward::%player%::*}
 			else:
 				send "{@notplaying}"
 		arg 1 is "spectate" or "ogladaj":
@@ -552,13 +562,16 @@ every second:
 				{mobarena::round::%loop-index%} is less than {@maxrounds}:
 					set {mobarena::time::%loop-index%} to {@roundtime}
 					add 1 to {mobarena::round::%loop-index%}
-					set {_round} to {mobarena::round::%loop-index%} 
+					set {_round} to {mobarena::round::%loop-index%}
+					set {_items::*} to value list "reward.round.%{_round}%" get of "plugins/MobArena/config.yml"
 					loop all players:
 						{maplayers::arena::%loop-player%} is loop-index:
 							send "{@newround}" to loop-player
+							loop {_items::*}:
+								add (loop-value-2 parsed as item) to {maplayers::reward::%loop-player%::*}
+								send "Dostales %loop-value-2%" to loop-player
 					set {mobarena::config::mobs::*} to value list "mobs" get of "plugins/MobArena/config.yml"
-					set {_rounds} to {mobarena::round::%loop-index%}
-					set  {_rounds} to {_rounds} parsed as integer
+					set  {_rounds} to {_round}# parsed as integer
 					loop {_rounds} times:
 						set {_mob} to a random element out of {mobarena::config::mobs::*}
 						set {_mob} to {_mob} parsed as entity type
