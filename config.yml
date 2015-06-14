@@ -26,8 +26,6 @@ mobs:
   - spider
   - creeper
   - zombie pigman
-  - silverfish
-  - villager
   
 
 kits:
@@ -86,3 +84,10 @@ kits:
       - 299
       - 300
       - 301
+
+reward:
+  round:
+    1:
+      - 'stone sword of Sharpness 5 named ""kupa""'
+      - '3 stone'
+      - '5 cobweb'
