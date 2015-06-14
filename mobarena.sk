@@ -57,7 +57,7 @@ options:
 #config
 	roundtime: 10
 	canjointo: "working" # ("enabled"|"working"|"enabled" or "working") never use "disabled"!
-	cancelbreak: true
+	cancelbreak: false
 	cancelplace: false
 	maxrounds: 10
 	countdown: 10
@@ -289,6 +289,8 @@ command /mobarenaadmin [<text="help">] [<text>] [<text>]:
 						loop all entities:
 							{maentities::%loop-entity%} is arg 2:
 								delete loop-entity
+						loop {mobarena::blocktypes::%arg 2%::*}:
+							set block at {mobarena::blocklocs::%arg 2%::%loop-index%} to loop-value
 					else:
 						send "{@notworking}"
 				else:
@@ -300,7 +302,6 @@ command /mobarenaadmin [<text="help">] [<text>] [<text>]:
 				{mobarena::list::%arg 2%} is set:
 					{mobarena::mode::%arg 2%} is "working":
 						set {_arena} to arg 2
-						send "{@gameplayended}"
 						loop all players:
 							{maplayers::arena::%loop-player%} is arg 2:
 								send "{@gameplayended}" to loop-player
@@ -328,12 +329,7 @@ command /mobarenaadmin [<text="help">] [<text>] [<text>]:
 									give {_itemparsed} to player
 								clear {maplayers::reward::%player%::*}
 								#=====
-						set {mobarena::mode::%arg 2%} to "enabled"
-						set {mobarena::time::%arg 2%} to 5
-						set {mobarena::round::%arg 2%} to 0
-						loop all entities:
-							{maentities::%loop-entity%} is arg 2:
-								delete loop-entity
+						execute server command "/maadmin stop %arg 2%"
 					else:
 						send "{@notworking}"
 				else:
@@ -615,15 +611,23 @@ on damage:
 
 on break:
 	{maplayers::arena::%player%} is set:
+		cancel event
 		{@cancelbreak} is true:
-			cancel event
 			send "{@youcannotdig}"
+		else:
+			add type of event-block to {mobarena::blocktypes::%{maplayers::arena::%player%}%::*}
+			add location of event-block to {mobarena::blocklocs::%{maplayers::arena::%player%}%::*}
+			uncancel event
 
 on place:
 	{maplayers::arena::%player%} is set:
+		cancel event
 		{@cancelplace} is true:
-			cancel event
 			send "{@youcannotplace}"
+		else:
+			add type of block at event-location to {mobarena::blocktypes::%{maplayers::arena::%player%}%::*}
+			add location of event-block to {mobarena::blocklocs::%{maplayers::arena::%player%}%::*}
+			uncancel event
 
 on command:
 	{maplayers::arena::%player%} is set:
@@ -654,17 +658,17 @@ on death:
 		delete drops
 
 on explode:
-	entity is creeper or tnt:
-		loop {mobarena::list::*}:
-			if wg region at event-location is "mobarena%loop-index%":
-				cancel event
-				loop exploded blocks:
+	loop {mobarena::list::*}:
+		if wg region at event-location is "mobarena%loop-index%":
+			cancel event
+			loop exploded blocks:
+				loop-block isn't tnt:
 					add location of loop-block to {_locations::*}
 					add type of loop-block to {_types::*}
-				uncancel event
-				wait 1 tick
-				loop {_locations::*}:
-					set block at loop-value-2 to {_types::%loop-index-2%}
+			uncancel event
+			wait 1 tick
+			loop {_locations::*}:
+				set block at loop-value-2 to {_types::%loop-index-2%}
 #=========={ DEBUG }==========#
 on quit:
 	{maplayers::arena::%player%} is set:
