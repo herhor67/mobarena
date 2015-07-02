@@ -52,13 +52,13 @@ options:
 	youcantusepotions: &cNie możesz teraz używać mikstur!
 	youarealreadyready: &cJuż jesteś gotowy!
 	countdownmessage: &aDo rozgrywki pozostało %{mobarena::timeleft::%loop-index%}% sekund!
-	gameplayended: &aGra się skończyła po %{mobarena::round::%{_arena}%}% rundach!
+	gameplayended: &aGra skończyła się po %{mobarena::round::%{_arena}%}% rundach!
 	receivedreward: &aOtrzymałeś nagrodę: %{_item}%!
 #config
-	roundtime: 10
-	canjointo: "working" # ("enabled"|"working"|"enabled" or "working") never use "disabled"!
-	cancelbreak: false
-	cancelplace: false
+	roundtime: 30
+	canjointo: "working" #mode of arena when spectators can join; ("enabled"|"working"|"enabled" or "working") never use "disabled"!
+	cancelbreak: true
+	cancelplace: true
 	maxrounds: 10
 	countdown: 10
 
@@ -67,6 +67,7 @@ on script load:
 		send "[MobArena] Config found!" to console
 	else:
 		send "[MobArena] Config not found! Downloading..." to console
+		create file "plugins/MobArena/config.yml"
 		download "https://raw.githubusercontent.com/herhor67/mobarena/master/config.yml" to "plugins/MobArena/config.yml"
 	set {_messages::*} to configuration section "messages" get of "plugins/MobArena/config.yml"
 	loop {_messages::*}:
@@ -257,6 +258,7 @@ command /mobarenaadmin [<text="help">] [<text>] [<text>]:
 										{mobarena::lobby1::%arg 2%} is set:
 											send "{@enabled}"
 											create wg region "mobarena%arg 2%" between {mobarena::point1::%arg 2%} and {mobarena::point2::%arg 2%} in world {mobarena::world::%arg 2%} # piratesk
+											#save blocks between {mobarena::point1::%arg 2%} and {mobarena::point2::%arg 2%} in to schematic file "mobarena%arg 2%"
 											set {mobarena::mode::%arg 2%} to "enabled"
 										else:
 											send "{@confnotended}"
@@ -279,18 +281,12 @@ command /mobarenaadmin [<text="help">] [<text>] [<text>]:
 				{mobarena::list::%arg 2%} is set:
 					{mobarena::mode::%arg 2%} is "working":
 						send "{@youstopped}"
-						loop all players:
-							{maplayers::arena::%loop-player%} is arg 2:
-								send "{@arenastopped}" to loop-player
-								execute loop-player command "/ma leave"
 						set {mobarena::mode::%arg 2%} to "enabled"
 						set {mobarena::time::%arg 2%} to 5
 						set {mobarena::round::%arg 2%} to 0
 						loop all entities:
 							{maentities::%loop-entity%} is arg 2:
 								delete loop-entity
-						loop {mobarena::blocktypes::%arg 2%::*}:
-							set block at {mobarena::blocklocs::%arg 2%::%loop-index%} to loop-value
 					else:
 						send "{@notworking}"
 				else:
@@ -339,6 +335,7 @@ command /mobarenaadmin [<text="help">] [<text>] [<text>]:
 		else if arg 1 is "download" or "pobierz":
 			send "Downloading..."
 			download "https://raw.githubusercontent.com/herhor67/mobarena/master/mobarena.sk" to "plugins/Skript/scripts/%script%.sk"
+			download "https://raw.githubusercontent.com/herhor67/mobarena/master/config.yml" to "plugins/MobArena/config.yml"
 			send "Downloaded!"
 			execute player command "/sk reload %script%"
 		else:
@@ -577,9 +574,6 @@ every second:
 						set {maentities::%last spawned entity%} to loop-index
 						#broadcast "Debug: %loop-number%"
 				else:
-					loop all players:
-						{maplayers::arena::%loop-player%} is loop-index:
-							send "{@gameplayended}" to loop-player
 					execute server command "/maadmin end %loop-index%"
 
 #=========={ TELEPORTOWANIE PO ŚMIERCI }==========#
@@ -608,6 +602,8 @@ on damage:
 							send "{@lastdied}" to loop-player
 					wait 5 seconds
 					execute server command "/maadmin end %{_arena}%"
+		{maplayers::mode::%victim%} is "spectator":
+			cancel event
 
 on break:
 	{maplayers::arena::%player%} is set:
@@ -615,9 +611,9 @@ on break:
 		{@cancelbreak} is true:
 			send "{@youcannotdig}"
 		else:
-			add type of event-block to {mobarena::blocktypes::%{maplayers::arena::%player%}%::*}
-			add location of event-block to {mobarena::blocklocs::%{maplayers::arena::%player%}%::*}
-			uncancel event
+			{mablocks::placedbyplayer::%location of event-block%} is true:
+				uncancel event
+				clear {mablocks::placedbyplayer::%location of event-block%}
 
 on place:
 	{maplayers::arena::%player%} is set:
@@ -625,8 +621,7 @@ on place:
 		{@cancelplace} is true:
 			send "{@youcannotplace}"
 		else:
-			add type of block at event-location to {mobarena::blocktypes::%{maplayers::arena::%player%}%::*}
-			add location of event-block to {mobarena::blocklocs::%{maplayers::arena::%player%}%::*}
+			set {mablocks::placedbyplayer::%location of event-block%} to true
 			uncancel event
 
 on command:
@@ -662,9 +657,10 @@ on explode:
 		if wg region at event-location is "mobarena%loop-index%":
 			cancel event
 			loop exploded blocks:
-				loop-block isn't tnt:
-					add location of loop-block to {_locations::*}
-					add type of loop-block to {_types::*}
+				if {mablocks::placedbyplayer::%location of loop-block%} isn't set:
+					loop-block isn't tnt nor air:
+						add location of loop-block to {_locations::*}
+						add type of loop-block to {_types::*}
 			uncancel event
 			wait 1 tick
 			loop {_locations::*}:
